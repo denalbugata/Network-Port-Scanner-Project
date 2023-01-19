@@ -61,12 +61,3 @@ def network_scanner(ip_range):
 network_scanner("192.168.1.")
 
 ```
-<!--
- ```diff
-- text in red
-+ text in green
-! text in orange
-# text in gray
-@@ text in purple (and bold)@@
-```
---!>
