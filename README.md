@@ -2,7 +2,7 @@
 
 
 <h2>Description</h2>
-This script uses a combination of ICMP pings and TCP connection attempts to identify active hosts and open ports on a given network range. It uses Python's built-in socket library to handle the network communication. The NetworkScanner class has several methods: ping_host, scan_ports, and start_scan. start_scan method is used to start the scanning process, which will first check if the host is up using ICMP ping and if host is up then it will scan for all open ports.
+This code uses the os library to run command line functions and the nmap library to scan open ports on online hosts. It takes an IP range as input and performs a network scan to identify all active hosts within that range. It uses the ping command to check if a host is online, and the nmap library to scan open ports on online hosts. It also calculates and print the total scan time.
 <br />
 
 
@@ -17,60 +17,49 @@ This script uses a combination of ICMP pings and TCP connection attempts to iden
 <h2>Program Code:</h2>
 
 ```python
-import socket
-import struct
-import threading
-import time
+import os  # Importing the os library to run command line functions
+import socket  # Importing the socket library to get information about network connections
 
-class NetworkScanner:
-    def __init__(self, target_ip):
-        self.target_ip = target_ip
-        self.open_ports = []
+def network_scanner(ip_range):
+    """
+    This function takes an IP range as input and performs a network scan to identify all active hosts within that range
+    """
+    # Clear the terminal screen
+    os.system("clear")
 
-    def ping_host(self, ip):
-        """
-        Sends a ping request to a host using the ICMP protocol.
-        Returns True if the host is up, False otherwise.
-        """
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-            sock.settimeout(2)
-            sock.sendto(b'', (ip, 1))
-            sock.recvfrom(1024)
-            return True
-        except:
-            return False
+    # Get current time for calculating total scan time
+    start_time = datetime.now()
 
-    def scan_ports(self, ip):
-        """
-        Scans all ports on a host to check if they are open.
-        """
-        for port in range(1, 65535):
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(2)
-            result = sock.connect_ex((ip, port))
-            if result == 0:
-                self.open_ports.append(port)
-            sock.close()
+    # Use the ping command to check if a host is online
+    online_hosts = []  # list to store online hosts
+    for host in range(1,255):
+        ip = ip_range + str(host)  # construct the IP address to scan
+        response = os.system("ping -c 1 " + ip + " > /dev/null")  # send a single ping packet and redirect output to null
+        if response == 0:  # if the return code is 0, the host is online
+            online_hosts.append(ip)
+            print(ip + " is online")
 
-    def start_scan(self):
-        """
-        Starts the network scan.
-        """
-        print(f'[*] Starting scan of IP range {self.target_ip}')
-        start_time = time.time()
-        for i in range(1, 255):
-            ip = f'{self.target_ip}.{i}'
-            if self.ping_host(ip):
-                print(f'[*] Host {ip} is up')
-                self.scan_ports(ip)
-                print(f'[*] Open ports on host {ip}: {self.open_ports}')
-                self.open_ports.clear()
-        end_time = time.time()
-        print(f'[*] Scan completed in {end_time - start_time} seconds')
+    # Use the nmap library to scan open ports on online hosts
+    open_ports = {}  # dictionary to store open ports for each host
+    for host in online_hosts:
+        open_ports[host] = []  # initialize empty list for open ports of current host
+        nm = nmap.PortScanner()  # create nmap object
+        nm.scan(host, '1-1024')  # scan host on all ports between 1 and 1024
+        for port in nm[host].all_tcp():  # iterate through all TCP ports
+            if nm[host]['tcp'][port]['state'] == 'open':  # if the port is open
+                open_ports[host].append(port)  # add the port to the list for the current host
+                print(host + ": " + str(port) + " open")
 
-scanner = NetworkScanner("192.168.1")
-scanner.start_scan()
+    # Get current time again for calculating total scan time
+    end_time = datetime.now()
+
+    # Calculate and print total scan time
+    total_time = end_time - start_time
+    print("Scan completed in: " + str(total_time))
+
+# Example usage
+network_scanner("192.168.1.")
+
 ```
 <!--
  ```diff
