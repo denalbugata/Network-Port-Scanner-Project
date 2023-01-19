@@ -2,7 +2,7 @@
 
 
 <h2>Description</h2>
-This code uses the os library to run command line functions and the nmap library to scan open ports on online hosts. It takes an IP range as input and performs a network scan to identify all active hosts within that range. It uses the ping command to check if a host is online, and the nmap library to scan open ports on online hosts. It also calculates and print the total scan time.
+This script uses the nmap command-line tool to perform a ping scan and a port scan on the given network range. The script first uses nmap to perform a ping scan, which simply checks if hosts are up. It then filters the output of nmap to a file hosts_up.txt that includes only the IP addresses of the hosts that are up. Next, it iterates through each host that is up, and performs a full port scan on each host using nmap. Finally, the script prints the open ports for each host and removes the temp files created.
 <br />
 
 
@@ -17,47 +17,51 @@ This code uses the os library to run command line functions and the nmap library
 <h2>Program Code:</h2>
 
 ```python
-import os  # Importing the os library to run command line functions
-import socket  # Importing the socket library to get information about network connections
+# Import the necessary libraries
+import os
+import socket
 
-def network_scanner(ip_range):
-    """
-    This function takes an IP range as input and performs a network scan to identify all active hosts within that range
-    """
-    # Clear the terminal screen
-    os.system("clear")
+# Clear the terminal
+os.system('clear')
 
-    # Get current time for calculating total scan time
-    start_time = datetime.now()
+# Get the network range to scan from the user
+network_range = input("Enter the network range to scan (e.g. 192.168.1.0/24): ")
 
-    # Use the ping command to check if a host is online
-    online_hosts = []  # list to store online hosts
-    for host in range(1,255):
-        ip = ip_range + str(host)  # construct the IP address to scan
-        response = os.system("ping -c 1 " + ip + " > /dev/null")  # send a single ping packet and redirect output to null
-        if response == 0:  # if the return code is 0, the host is online
-            online_hosts.append(ip)
-            print(ip + " is online")
+# Use the nmap library to perform a ping scan on the given network range
+# The -sn flag tells nmap to perform a "ping scan", which simply checks if hosts are up
+# The -oG flag tells nmap to output the results in "grepable" format, which makes it easier to parse the results
+ping_scan = os.system('nmap -sn -oG - ' + network_range + ' | grep Up > hosts_up.txt')
 
-    # Use the nmap library to scan open ports on online hosts
-    open_ports = {}  # dictionary to store open ports for each host
-    for host in online_hosts:
-        open_ports[host] = []  # initialize empty list for open ports of current host
-        nm = nmap.PortScanner()  # create nmap object
-        nm.scan(host, '1-1024')  # scan host on all ports between 1 and 1024
-        for port in nm[host].all_tcp():  # iterate through all TCP ports
-            if nm[host]['tcp'][port]['state'] == 'open':  # if the port is open
-                open_ports[host].append(port)  # add the port to the list for the current host
-                print(host + ": " + str(port) + " open")
+# Open the file that contains the hosts that are up
+with open('hosts_up.txt', 'r') as f:
+    hosts_up = f.readlines()
 
-    # Get current time again for calculating total scan time
-    end_time = datetime.now()
+# Initialize an empty list to store the open ports for each host
+open_ports = {}
 
-    # Calculate and print total scan time
-    total_time = end_time - start_time
-    print("Scan completed in: " + str(total_time))
+# Iterate through each host that is up
+for host in hosts_up:
+    # Extract the IP address of the host from the nmap output
+    ip_address = host.split(" ")[1]
 
-# Example usage
-network_scanner("192.168.1.")
+    # Use the nmap library to perform a port scan on the host
+    # The -p flag tells nmap which ports to scan
+    # The -oG flag tells nmap to output the results in "grepable" format, which makes it easier to parse the results
+    port_scan = os.system('nmap -p 1-65535 -oG - ' + ip_address + ' | grep open > ports_open.txt')
+
+    # Open the file that contains the open ports for the host
+    with open('ports_open.txt', 'r') as f:
+        ports_open = f.readlines()
+        
+    # Add the open ports to the list
+    open_ports[ip_address] = ports_open
+
+# Print the open ports for each host
+for host, ports in open_ports.items():
+    print(host + ": " + str(ports))
+    
+# remove the temp files created
+os.system('rm ports_open.txt hosts_up.txt')
+
 
 ```
