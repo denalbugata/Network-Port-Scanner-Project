@@ -2,7 +2,7 @@
 
 
 <h2>Description</h2>
-This code uses the **os** library to run command line functions and the **nmap** library to scan open ports on online hosts. It takes an IP range as input and performs a network scan to identify all active hosts within that range. It uses the **ping** command to check if a host is online, and the **nmap** library to scan open ports on online hosts. It also calculates and print the total scan time.
+This code uses the os library to run command line functions and the nmap library to scan open ports on online hosts. It takes an IP range as input and performs a network scan to identify all active hosts within that range. It uses the ping command to check if a host is online, and the nmap library to scan open ports on online hosts. It also calculates and print the total scan time.
 <br />
 
 
