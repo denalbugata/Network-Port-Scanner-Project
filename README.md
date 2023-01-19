@@ -6,9 +6,6 @@ This script uses the nmap command-line tool to perform a ping scan and a port sc
 <br />
 
 
-<h2>Languages and Utilities Used</h2>
-
-- <b>Python</b> 
 
 <h2>Environments Used </h2>
 
